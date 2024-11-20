@@ -1,0 +1,49 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides: esme-led
+# Required-Start: $remote_fs $time
+# Required-Stop: $remote_fs $time
+# Default-Start: 3 4 5
+# Default-Stop: 0 1 2 6
+# Short-Description: ESME LED GPIO#17 toggle service
+### END INIT INFO
+
+# Variables
+DAEMON="/usr/bin/gpiod"
+NAME="esme-led"
+PIDFILE="/var/run/${NAME}.pid"
+
+case "$1" in
+    start)
+        echo "Starting $NAME..."
+        if start-stop-daemon --start --quiet --background --make-pidfile --pidfile "$PIDFILE" --exec "$DAEMON"; then
+            echo "$NAME started."
+        else
+            echo "Failed to start $NAME."
+        fi
+        ;;
+    stop)
+        echo "Stopping $NAME..."
+        if start-stop-daemon --stop --quiet --pidfile "$PIDFILE"; then
+            echo "$NAME stopped."
+        else
+            echo "$NAME is not running."
+        fi
+        ;;
+    restart)
+        echo "Restarting $NAME..."
+        $0 stop
+        $0 start
+        ;;
+    status)
+        if [ -f "$PIDFILE" ] && ps -p $(cat "$PIDFILE") > /dev/null 2>&1; then
+            echo "Status of $NAME: running with PID=$(cat $PIDFILE)"
+        else
+            echo "Status of $NAME: stopped"
+        fi
+        ;;
+    *)
+        echo "Usage: $0 (start | stop | restart | status)"
+        ;;
+esac
+exit 0
