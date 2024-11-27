@@ -1,33 +1,37 @@
-# Nom du programme
-TARGET = gpiod
-
 # Répertoires
-INSTALL_DIR ?= ./.install
-INIT_SCRIPT = esme-led
+INSTALL_DIR ?= ./.install/
+
+# Fichiers
+PROG := gpio-toggle
+SCRIPT = esme-led
+
+# Fichiers objets
+OBJS := $(subst .c,.o,$(shell ls *.c))
 
 # Options de compilation et d'édition de liens
 CFLAGS += $(shell pkg-config --cflags libgpiod)
 LDLIBS += $(shell pkg-config --libs libgpiod)
 
-# Liste des fichiers sources
-SRC = gpio-toggle.c
-
 # Cible par défaut
-all: $(TARGET)
+all: $(PROG)
 
-# Compilation implicite, en utilisant les règles intégrées de GNU Make
-$(TARGET): $(SRC)
+$(PROG): $(OBJS)
 
 # Cible d'installation
-install: $(TARGET)
-	mkdir -p $(INSTALL_DIR)
-	cp $(TARGET) $(INSTALL_DIR)
-	@echo "Programme installé dans $(INSTALL_DIR)"
-	sudo cp $(INIT_SCRIPT) /etc/init.d/
-	sudo chmod 0755 /etc/init.d/$(INIT_SCRIPT)
-	@echo "Script $(INIT_SCRIPT) installé dans /etc/init.d"
+install: $(PROG) $(SCRIPT)
+	# Créer le répertoire d'installation s'il n'existe pas
+	mkdir -p $(INSTALL_DIR)/usr/bin
+	# Copier le programme dans le répertoire d'installation
+	cp $(PROG) $(INSTALL_DIR)/usr/bin
+	@echo "$(PROG) installé dans $(INSTALL_DIR)/usr/bin"
+	# Créer le répertoire d'installation s'il n'existe pas
+	mkdir -p $(INSTALL_DIR)/etc/init.d
+	# Copier le script esme-led dans /etc/init.d et ajuster les permissions
+	cp $(SCRIPT) $(INSTALL_DIR)/etc/init.d/
+	chmod 0755 $(INSTALL_DIR)/etc/init.d/$(SCRIPT)
+	@echo "$(SCRIPT) installé dans $(INSTALL_DIR)/etc/init.d avec chmod 0755"
 
 # Cible pour nettoyer les fichiers générés
 clean:
-	$(RM) $(TARGET) *.o
+	-$(RM) -rf $(PROG) $(OBJS)
 	@echo "Nettoyage effectué"
